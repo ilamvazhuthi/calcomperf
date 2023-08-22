@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Infrastructure Comparison</title>
+<style>
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 40px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h2, h3 {
+    color: #2c3e50;
+    margin-top: 40px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    margin-top: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+    padding: 15px;
+    border-bottom: 1px solid #e7e7e7;
+}
+
+th {
+    background-color: #34495e;
+    color: #ffffff;
+}
+
+button {
+    background-color: #3498db;
+    color: #ffffff;
+    padding: 10px 25px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+input[type="text"], input[type="number"], select {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #e7e7e7;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+p#result {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    font-size: 16px;
+}
+
+ul {
+    margin-left: 20px;
+}
+
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<h2>Prod Environment</h2>
+<input accept=".csv" id="csvUpload" type="file"/><button onclick="uploadCSVAndUpdateTable()">Upload CSV</button><table id="prodTable">
+<thead>
+<tr>
+<th>Component</th>
+<th>Instance Type</th>
+<th>No of Instance</th>
+<th>Action</th></tr>
+</thead>
+<tbody>
+<tr>
+<td><input name="component" type="text"/></td>
+<td>
+<select name="instanceType">
+<option value="1">c4.large</option>
+<option value="2">c4.xlarge</option>
+<option value="4">c4.2xlarge</option>
+<option value="8">c4.4xlarge</option>
+<option value="16">c4.8xlarge</option>
+<!-- Add more instance types as needed -->
+</select>
+</td>
+<td><input name="noOfInstance" type="number"/></td>
+<td><button onclick="removeComponentRow(this)">Remove</button></td></tr>
+</tbody>
+</table>
+<button onclick="addComponentRow('prodTable')">Add Component</button>
+<h2>Perf Environment</h2>
+<input accept=".csv" id="csvUploadPerf" type="file"/><button onclick="uploadCSVAndUpdateTablePerf()">Upload CSV</button><table id="perfTable">
+<thead>
+<tr>
+<th>Component</th>
+<th>Instance Type</th>
+<th>No of Instance</th>
+<th>Action</th></tr>
+</thead>
+<tbody>
+<tr>
+<td><input name="component" type="text"/></td>
+<td>
+<select name="instanceType">
+<option value="1">c4.large</option>
+<option value="2">c4.xlarge</option>
+<option value="4">c4.2xlarge</option>
+<option value="8">c4.4xlarge</option>
+<option value="16">c4.8xlarge</option>
+<!-- Add more instance types as needed -->
+</select>
+</td>
+<td><input name="noOfInstance" type="number"/></td>
+<td><button onclick="removeComponentRow(this)">Remove</button></td></tr>
+</tbody>
+</table>
+<button onclick="addComponentRow('perfTable')">Add Component</button>
+<h3>Prod User Count Per Day</h3>
+<input id="prodUserCount" placeholder="Enter user count for Prod" type="number"/>
+<button onclick="calculate()">Calculate</button>
+<button onclick="downloadCSV()">Download as CSV</button>
+<h3>Results</h3>
+<p id="result"></p>
+<h2>Formulas Explained</h2>
+<h3>1. Calculate Infrastructure Size:</h3>
+<p>
+    The total infrastructure size is a sum of the sizes of all individual components. For each component:
+    <ul>
+<li>The size is determined by its instance size. If you're using a standardized system like AWS EC2, each instance type (e.g., c4.large, c4.8xlarge, etc.) has an associated computational value or "size".</li>
+<li>Each component may have multiple instances. For example, you might have 3 servers of type c4.large.</li>
+</ul>
+    Formula: <code>Infrastructure Size = Σ (Instance Size of each component × Number of Instances of each component)</code>
+</p>
+<h3>2. Compare Infrastructure Sizes:</h3>
+<p>
+    This formula calculates the percentage difference in size between the production and performance environments.
+    <ul>
+<li>The numerator (Prod Infrastructure Size - Perf Infrastructure Size) gives the absolute difference in size between the two environments.</li>
+<li>Dividing by Prod Infrastructure Size normalizes this difference to the size of the production environment, turning it into a relative difference.</li>
+<li>Multiplying by 100 converts this relative difference into a percentage.</li>
+</ul>
+    Formula: <code>Difference % = (Prod Infrastructure Size - Perf Infrastructure Size) / Prod Infrastructure Size × 100</code>
+</p>
+<h3>3. Calculate User Count for Perf:</h3>
+<p>
+    This formula determines how many users you should simulate in the performance environment based on the difference in infrastructure size.
+    <ul>
+<li>The term (1 - Difference %/100) calculates the proportional size of the performance environment relative to production. For instance, if the performance environment is 30% smaller, this term would be 0.70.</li>
+<li>Multiplying the production user count by this proportion gives the user count that the performance environment can handle, assuming linear scaling.</li>
+</ul>
+    Formula: <code>Perf User Count = Prod User Count × (1 - Difference %/100)</code>
+</p>
+<script src="script.js"></script>
+</body>
+</html>
